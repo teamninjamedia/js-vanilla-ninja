@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Arte Interactivo con JavaScript Vanilla</title>
+  <title>Patrón Árabe Dinámico</title>
   <style>
     html, body {
       margin: 0;
@@ -21,38 +21,91 @@
   <script>
     const canvas = document.getElementById('lienzo');
     const ctx = canvas.getContext('2d');
+    const patrones = [];
+    const size = 80;
 
     function redimensionar() {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
-    }
-    window.addEventListener('resize', redimensionar);
-    redimensionar();
-
-    let clickColor = 0;
-
-    document.addEventListener('click', () => {
-      clickColor = (clickColor + 60) % 360;
-    });
-
-    function dibujar(t) {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      const size = 80;
+      patrones.length = 0;
       for (let x = 0; x < canvas.width; x += size) {
         for (let y = 0; y < canvas.height; y += size) {
-          const offset = Math.sin((x + y + t * 0.5) * 0.01) * 20;
-          ctx.beginPath();
-          ctx.arc(x + size / 2, y + size / 2, 10 + offset, 0, Math.PI * 2);
-          ctx.fillStyle = `hsl(${(clickColor + x + y + t) % 360}, 80%, 60%)`;
-          ctx.fill();
+          patrones.push({
+            baseX: x + size / 2,
+            baseY: y + size / 2,
+            x: x + size / 2,
+            y: y + size / 2,
+            offsetX: Math.random() * 100,
+            offsetY: Math.random() * 100,
+            color: randomColor(),
+            forma: Math.random() > 0.5 ? 'estrella' : 'circulo'
+          });
         }
       }
-
-      requestAnimationFrame(dibujar);
     }
 
-    dibujar(0);
+    function randomColor() {
+      return `hsl(${Math.floor(Math.random() * 360)}, 100%, 70%)`;
+    }
+
+    function dibujarPatron(x, y, tam, color, forma) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1.2;
+
+      if (forma === 'estrella') {
+        for (let i = 0; i < 8; i++) {
+          ctx.rotate(Math.PI / 4);
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.lineTo(tam, 0);
+          ctx.stroke();
+        }
+        ctx.beginPath();
+        ctx.arc(0, 0, tam / 2, 0, Math.PI * 2);
+        ctx.stroke();
+      } else {
+        ctx.beginPath();
+        ctx.arc(0, 0, tam / 2, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(0, 0, tam / 4, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      ctx.restore();
+    }
+
+    function actualizar(t) {
+      ctx.fillStyle = 'black';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      for (const p of patrones) {
+        p.x = p.baseX + Math.sin(t * 0.001 + p.offsetX) * 5;
+        p.y = p.baseY + Math.cos(t * 0.001 + p.offsetY) * 5;
+        dibujarPatron(p.x, p.y, size / 2, p.color, p.forma);
+      }
+
+      requestAnimationFrame(actualizar);
+    }
+
+    canvas.addEventListener('click', function () {
+      for (let i = 0; i < 10; i++) {
+        const index = Math.floor(Math.random() * patrones.length);
+        const p = patrones[index];
+        p.forma = p.forma === 'estrella' ? 'circulo' : 'estrella';
+        p.offsetX = Math.random() * 100;
+        p.offsetY = Math.random() * 100;
+      }
+    });
+
+    window.addEventListener('resize', () => {
+      redimensionar();
+    });
+
+    redimensionar();
+    requestAnimationFrame(actualizar);
   </script>
 </body>
 </html>
