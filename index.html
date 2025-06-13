@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Arte Interactivo con JavaScript Vanilla</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: black;
+    }
+    canvas {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="lienzo"></canvas>
+
+  <script>
+    const canvas = document.getElementById('lienzo');
+    const ctx = canvas.getContext('2d');
+
+    function redimensionar() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', redimensionar);
+    redimensionar();
+
+    let clickColor = 0;
+
+    document.addEventListener('click', () => {
+      clickColor = (clickColor + 60) % 360;
+    });
+
+    function dibujar(t) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const size = 80;
+      for (let x = 0; x < canvas.width; x += size) {
+        for (let y = 0; y < canvas.height; y += size) {
+          const offset = Math.sin((x + y + t * 0.5) * 0.01) * 20;
+          ctx.beginPath();
+          ctx.arc(x + size / 2, y + size / 2, 10 + offset, 0, Math.PI * 2);
+          ctx.fillStyle = `hsl(${(clickColor + x + y + t) % 360}, 80%, 60%)`;
+          ctx.fill();
+        }
+      }
+
+      requestAnimationFrame(dibujar);
+    }
+
+    dibujar(0);
+  </script>
+</body>
+</html>
